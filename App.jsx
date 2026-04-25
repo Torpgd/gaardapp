@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 // ─── SETT INN DINE VERDIER HER ───────────────────────────────────────────────
-const SUPABASE_URL = "https://DITT_PROSJEKT.supabase.co";
-const SUPABASE_ANON_KEY = "DIN_ANON_KEY";
+const SUPABASE_URL = "https://zasjbcbkvehhbqydadnz.supabase.co/rest/v1/";
+const SUPABASE_ANON_KEY = "sb_publishable_wTSsiXVhL6nPDsdYjRF8Yg_tCYyLzAU";
 // ─────────────────────────────────────────────────────────────────────────────
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
