@@ -160,7 +160,9 @@ export default function App() {
   const [workers, setWorkers] = useState([]);
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("torp_current_user")) || null; } catch { return null; }
+  });
   const [activeTab, setActiveTab] = useState("register");
   const [notification, setNotification] = useState(null);
   const [activeWorkerId, setActiveWorkerId] = useState(null);
@@ -206,6 +208,17 @@ export default function App() {
 
   const isAdmin = currentUser?.is_admin;
 
+  function handleLogin(user) {
+    localStorage.setItem("torp_current_user", JSON.stringify(user));
+    setCurrentUser(user);
+  }
+
+  function handleLogout() {
+    localStorage.removeItem("torp_current_user");
+    setCurrentUser(null);
+    setActiveWorkerId(null);
+  }
+
   const suggestedSats = newWorker.birthdate
     ? getSatsForAlder(newWorker.birthdate, new Date().toISOString().slice(0, 10))
     : null;
@@ -232,7 +245,11 @@ export default function App() {
   async function updateWorker(id, updates) {
     await supabase.from("workers").update(updates).eq("id", id);
     setWorkers(prev => prev.map(w => w.id === id ? { ...w, ...updates } : w));
-    if (currentUser?.id === id) setCurrentUser(prev => ({ ...prev, ...updates }));
+    if (currentUser?.id === id) {
+      const updated = { ...currentUser, ...updates };
+      localStorage.setItem("torp_current_user", JSON.stringify(updated));
+      setCurrentUser(updated);
+    }
     setEditingWorker(null);
     showNotif("Oppdatert");
   }
@@ -329,7 +346,7 @@ export default function App() {
     </div>
   );
 
-  if (!currentUser) return <LoginScreen workers={workers} onLogin={setCurrentUser} />;
+  if (!currentUser) return <LoginScreen workers={workers} onLogin={handleLogin} />;
 
   return (
     <div style={{ minHeight: "100vh", background: "#0f1a0d", color: "#e8ead4", fontFamily: "'Georgia', serif" }}>
@@ -355,7 +372,7 @@ export default function App() {
                   <span style={{ fontSize: 11, color: "#5a7a4a" }}>{currentUser.name}</span>
                   {isAdmin && <span style={{ fontSize: 9, color: "#4a7a34", background: "#1a2e16", border: "1px solid #2d4a26", borderRadius: 3, padding: "1px 6px", letterSpacing: 1 }}>ADMIN</span>}
                 </div>
-                <button onClick={() => { setCurrentUser(null); setActiveWorkerId(null); }} style={{ background: "none", border: "none", color: "#3a5a30", cursor: "pointer", fontSize: 11, padding: 0 }}>Logg ut</button>
+                <button onClick={handleLogout} style={{ background: "none", border: "none", color: "#3a5a30", cursor: "pointer", fontSize: 11, padding: 0 }}>Logg ut</button>
               </div>
             </div>
           </div>
