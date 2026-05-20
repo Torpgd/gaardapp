@@ -212,27 +212,57 @@ export default function VærSesong({ user, back, logout, jordbrukRecs }) {
       `sesong_id=eq.${sesong.id}`
     ) || [];
 
+    // Grupper såinger per kultur — summer opp areal
     const saainger = jordbrukRecs?.filter(r => r.type === "Såing") || [];
+    const kulturMap = {};
     for (const s of saainger) {
       if (!s.crop) continue;
-      // Sjekk mot Supabase-data, ikke lokal state
-      const finnes = eksisterendeFraDb.find(
-        k => k.kultur === s.crop &&
-             k.from_skifte === s.from_skifte &&
-             k.to_skifte === s.to_skifte
-      );
+      // Beregn areal fra skifterange hvis ikke overstyrt
+      let daa = s.customDaa ? parseFloat(s.customDaa) : null;
+      if (!daa) {
+        // Importer getFieldsInRange-logikk inline
+        try {
+          const FIELDS = [
+            {id:"skifte1",area:14.2},{id:"skifte3",area:8.4},{id:"skifte5",area:9.1},
+            {id:"skifte6",area:11.3},{id:"skifte9",area:10.8},{id:"skifte10",area:9.6},
+            {id:"skifte13",area:8.2},{id:"skifte14",area:12.1},{id:"skifte16",area:16.0},
+            {id:"skifte18",area:18.0},{id:"skifte20",area:20.3}
+          ];
+          const fi = FIELDS.findIndex(f => f.id === s.from_skifte);
+          const ti = FIELDS.findIndex(f => f.id === s.to_skifte);
+          if (fi >= 0 && ti >= 0) {
+            daa = FIELDS.slice(Math.min(fi,ti), Math.max(fi,ti)+1)
+              .reduce((sum,f) => sum+f.area, 0);
+          }
+        } catch {}
+      }
+      if (!kulturMap[s.crop]) {
+        kulturMap[s.crop] = { crop:s.crop, saato:s.date, areal_daa:daa||0 };
+      } else {
+        // Summer areal for samme kultur
+        kulturMap[s.crop].areal_daa = (kulturMap[s.crop].areal_daa||0) + (daa||0);
+        // Bruk tidligste såingsdato
+        if (s.date < kulturMap[s.crop].saato) kulturMap[s.crop].saato = s.date;
+      }
+    }
+
+    for (const [kultur, data] of Object.entries(kulturMap)) {
+      // Sjekk kun mot kultur — én rad per kultur per sesong
+      const finnes = eksisterendeFraDb.find(k => k.kultur === kultur);
       if (!finnes) {
         await sbInsert("sesong_kulturer", {
-          sesong_id:   sesong.id,
-          kultur:      s.crop,
-          from_skifte: s.from_skifte,
-          to_skifte:   s.to_skifte,
-          areal_daa:   s.customDaa ? parseFloat(s.customDaa) : null,
-          saato:       s.date,
-          aktiv:       true
+          sesong_id: sesong.id,
+          kultur:    kultur,
+          areal_daa: Math.round(data.areal_daa * 10) / 10,
+          saato:     data.saato,
+          aktiv:     true
         });
-      } else if (!finnes.saato) {
-        await sbUpdate("sesong_kulturer", `id=eq.${finnes.id}`, { saato: s.date });
+      } else {
+        // Oppdater areal og dato
+        await sbUpdate("sesong_kulturer", `id=eq.${finnes.id}`, {
+          areal_daa: Math.round(data.areal_daa * 10) / 10,
+          saato:     data.saato
+        });
       }
     }
 
