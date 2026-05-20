@@ -10,11 +10,25 @@ import VærSesong  from "./src/components/VaerSesong";
 import { MW, ME } from "./src/data/constants";
 
 export default function App() {
-  const [workers, setWorkers]       = useState(MW);
-  const [entries, setEntries]       = useState(ME);
+  const [workers, setWorkers] = useState(() => {
+    try { const s = localStorage.getItem("torp_workers"); return s ? JSON.parse(s) : MW; }
+    catch { return MW; }
+  });
+  const [entries, setEntries] = useState(() => {
+    try { const s = localStorage.getItem("torp_entries"); return s ? JSON.parse(s) : ME; }
+    catch { return ME; }
+  });
   const [jordbrukRecs, setJordbrukRecs] = useState([]);
-  const [user, setUser]             = useState(null);
-  const [page, setPage]             = useState("dash");
+  const [user, setUser]   = useState(null);
+  const [page, setPage]   = useState("dash");
+
+  useEffect(() => {
+    try { localStorage.setItem("torp_workers", JSON.stringify(workers)); } catch {}
+  }, [workers]);
+
+  useEffect(() => {
+    try { localStorage.setItem("torp_entries", JSON.stringify(entries)); } catch {}
+  }, [entries]);
 
   useEffect(() => {
     const l = document.createElement("link");
