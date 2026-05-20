@@ -6,7 +6,7 @@ import Maskiner   from "./src/components/Maskiner";
 import Jordbruk   from "./src/components/Jordbruk";
 import Skog       from "./src/components/Skog";
 import Bygninger  from "./src/components/Bygninger";
-import VærSesong  from "./src/components/VærSesong";
+import VærSesong  from "./src/components/VaerSesong";
 import { MW, ME } from "./src/data/constants";
 
 export default function App() {
