@@ -1,17 +1,9 @@
 import { useState } from "react";
 import { S } from "../lib/utils";
-import { BBCH_GUIDE } from "../data/bbch";
+import { BBCH_GUIDE, BBCH_ORDER } from "../data/bbch";
 
 // ─── Alle BBCH-stadier i rekkefølge ──────────────────────────────────────────
-const BBCH_ORDER = [
-  "Z0","Z5","Z10","Z11","Z12","Z13","Z15",
-  "Z20","Z21","Z25","Z29",
-  "Z30","Z31","Z32","Z37","Z39",
-  "Z41","Z51","Z65",
-  "Z71","Z83","Z87",
-  "Å10","Å15","Å51","Å75","Å87",
-  "blomstring"
-];
+// BBCH_ORDER importeres fra bbch.js
 
 // Normaliser BBCH-referanse — håndter lange og korte bindestreker
 function normaliser(s) {
