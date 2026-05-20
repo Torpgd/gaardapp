@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Hdr, FieldRangeSelector, FileUpload, FThumb } from "./Shared";
-import { GjødselplanEditor, SprøyteplanEditor, PesticideInfoPanel } from "./SprøyteModul";
+import { GjødselplanEditor, SprøyteplanEditor, PesticideInfoPanel } from "./SproyteModul";
 import TiltakBanner from "./TiltakBanner";
 import { useTiltak } from "../lib/useSisteTiltak";
 import { UgrasTab, SoppTab } from "./PlantevernTab";
