@@ -300,24 +300,54 @@ export default function VærSesong({ user, back, logout, jordbrukRecs }) {
   }
 
   async function hentPrognose(type) {
+    if (!sesong) return;
     setLaster(true); setLasterType(type); setFeil("");
-    try {
-      const r = await fetch(`${VAER_API_URL}/api/prognose`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type })
-      });
-      if (r.ok) {
-        const data = await r.json();
-        setPrognose({ ...data, type });
-        setTab("prognose");
-      } else {
-        setFeil("Kunne ikke hente prognose — sjekk at vaer_agent.py kjører");
-      }
-    } catch {
-      setFeil("Tilkoblingsfeil — sjekk at vaer_agent.py kjører på port 8765");
+
+    // Legg inn forespørsel i Supabase — agenten plukker den opp og svarer
+    const forespørsel = await sbInsert("vaer_prognoser", {
+      sesong_id:     sesong.id,
+      prognose_type: type,
+      innhold:       null,  // agenten fyller dette inn
+    });
+    const forespørselId = forespørsel?.[0]?.id;
+    if (!forespørselId) {
+      setFeil("Kunne ikke opprette prognoseforespørsel");
+      setLaster(false);
+      return;
     }
-    setLaster(false);
+
+    // Poll Supabase i opptil 60 sekunder på svar fra agenten
+    let forsok = 0;
+    const maxForsok = 60;
+    const poll = setInterval(async () => {
+      forsok++;
+      const rader = await sbSelect(
+        "vaer_prognoser",
+        `id=eq.${forespørselId}&select=innhold,prognose_type`
+      );
+      const rad = rader?.[0];
+      if (rad?.innhold) {
+        clearInterval(poll);
+        setPrognose({ rapport: rad.innhold, type: rad.prognose_type });
+        setTab("prognose");
+        setLaster(false);
+      } else if (forsok >= maxForsok) {
+        clearInterval(poll);
+        // Vis siste rapport fra Supabase som fallback
+        const siste = await sbSelect(
+          "vaer_prognoser",
+          `sesong_id=eq.${sesong.id}&prognose_type=eq.${type}&innhold=not.is.null&order=hentet_kl.desc&limit=1`
+        );
+        if (siste?.[0]?.innhold) {
+          setPrognose({ rapport: siste[0].innhold, type, gammel: true });
+          setTab("prognose");
+          setFeil("Viser siste lagrede prognose — agenten svarte ikke innen 60 sekunder");
+        } else {
+          setFeil("Ingen respons fra agenten. Sjekk at vaer_agent.py kjører på gårds-PC.");
+        }
+        setLaster(false);
+      }
+    }, 1000);
   }
 
   const saaddeKulturer = kulturer.filter(k => k.saato);
