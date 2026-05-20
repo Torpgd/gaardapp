@@ -5,6 +5,7 @@ import TiltakBanner from "./TiltakBanner";
 import { useTiltak } from "../lib/useSisteTiltak";
 import { UgrasTab, SoppTab } from "./PlantevernTab";
 import KalkulatorTab from "./KalkulatorTab";
+import { BbchTekst } from "./BbchKort";
 import { S, uid, fmt, fieldName, getFieldsInRange, getEffectiveDaa } from "../lib/utils";
 import { FIELDS, SOIL, PESTICIDES_DB, today } from "../data/constants";
 
@@ -166,10 +167,21 @@ export default function Jordbruk({ user, back, logout, onRecsChange }) {
         {/* OVERSIKT */}
         {tab === "alle" && (
           <div>
-            <div style={{ ...S.card, marginBottom:12, padding:0, overflow:"hidden" }}>
-              <div style={{ fontSize:11, color:"#5a7a4a", letterSpacing:2, textTransform:"uppercase", padding:"10px 14px 8px" }}>Kart — Brødenveien 181, Halden</div>
-              <iframe src="https://maps.google.com/maps?q=Br%C3%B8denveien+181,+Halden,+Norway&t=k&z=15&ie=UTF8&iwloc=&output=embed" width="100%" height="200" style={{ border:0, display:"block" }} allowFullScreen loading="lazy" title="Gårdskart"/>
-              <div style={{ fontSize:10, color:"#3a5a30", padding:"5px 14px 8px" }}>Satelittvisning · Klikk for å åpne i Google Maps</div>
+            <div style={{ ...S.card, marginBottom:12 }}>
+              <div style={{ fontSize:11, color:"#5a7a4a", letterSpacing:2, textTransform:"uppercase", marginBottom:10 }}>Gårdskart — Brødenveien 181, Halden</div>
+              <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+                <a href="https://gardskart.nibio.no/landbrukseiendom/3101/45/1/0?utm=32&gardskartlayer=ar5kl7&alle=false&bakgrunnskart=graatoner&x=634454.045&y=6559650.415&z=15.52404"
+                  target="_blank" rel="noreferrer"
+                  style={{ ...S.btn, textDecoration:"none", display:"inline-flex", alignItems:"center", gap:8, fontSize:13, padding:"10px 18px" }}>
+                  🗺 Åpne NIBIO Gårdskart (AR5)
+                </a>
+                <a href="https://gardskart.nibio.no/printpdf/gk_enkel_20260520_16_02-3101_45_1_0-nn7JHD11.pdf"
+                  target="_blank" rel="noreferrer"
+                  style={{ ...S.bsm, textDecoration:"none", display:"inline-flex", alignItems:"center", gap:8, fontSize:12, padding:"10px 14px" }}>
+                  📄 Last ned kart som PDF
+                </a>
+              </div>
+              <div style={{ fontSize:10, color:"#3a5a30", marginTop:8 }}>Gårdsnr. 45, bruksnr. 1 · Halden kommune (3101) · Kartlag: AR5</div>
             </div>
             <div style={{ ...S.card, marginBottom:12 }}>
               <div style={{ fontSize:11, color:"#5a7a4a", letterSpacing:2, textTransform:"uppercase", marginBottom:10 }}>Sesong 2026</div>

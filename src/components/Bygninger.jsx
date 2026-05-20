@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Hdr, FileUpload } from "./Shared";
 import { S, uid, fmt } from "../lib/utils";
 import { BUILDINGS, today } from "../data/constants";
@@ -78,10 +78,12 @@ function BygningModal({ bygning, onSave, onClose }) {
 }
 
 // ─── BYGNINGER HOVEDKOMPONENT ─────────────────────────────────────────────────
-export default function Bygninger({ user, back, logout }) {
+export default function Bygninger({ user, back, logout, initLogs, onLogsChange }) {
   const [buildings, setBuildings] = useState(BUILDINGS);
   const [sel, setSel]             = useState(null);
-  const [logs, setLogs]           = useState(INIT_LOGS);
+  const [logsState, setLogsState] = useState(() => initLogs || INIT_LOGS);
+  function setLogs(fn) { setLogsState(p => { const ny=typeof fn==="function"?fn(p):fn; onLogsChange?.(ny); return ny; }); }
+  const logs = logsState;
   const [sa, setSa]               = useState(false);
   const [editId, setEditId]       = useState(null);
   const [nl, setNl]               = useState({ date:today, type:"Vedlikehold", description:"", done_by:user.name, files:[] });

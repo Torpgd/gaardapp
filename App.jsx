@@ -8,38 +8,36 @@ import Skog       from "./src/components/Skog";
 import Bygninger  from "./src/components/Bygninger";
 import VærSesong  from "./src/components/VaerSesong";
 import { MW, ME } from "./src/data/constants";
+import { useLocalStorage } from "./src/lib/useLocalStorage";
 
 export default function App() {
-  const [workers, setWorkers] = useState(() => {
+  // ── Alle tilstander persisteres til localStorage ───────────────────────
+  const [workers, setWorkers]       = useLocalStorage("torp_v3_workers", MW);
+  const [entries, setEntries]       = useLocalStorage("torp_v3_entries", ME);
+  const [jordbrukRecs, setJordbrukRecs] = useLocalStorage("torp_v3_jordbruk", []);
+  const [skogRecs, setSkogRecs]     = useLocalStorage("torp_v3_skog_recs", []);
+  const [skogLager, setSkogLager]   = useLocalStorage("torp_v3_skog_lager", null);
+  const [skogPriser, setSkogPriser] = useLocalStorage("torp_v3_skog_priser", null);
+  const [skogVedLog, setSkogVedLog] = useLocalStorage("torp_v3_skog_vedlog", []);
+  const [bygningerLogs, setBygningerLogs] = useLocalStorage("torp_v3_bygninger", null);
+  const [maskinerData, setMaskinerData]   = useLocalStorage("torp_v3_maskiner", null);
+
+  // ── Innlogget bruker — huskes til nettleserfane lukkes ─────────────────
+  // PIN tastes kun én gang — husket i sessionStorage (ikke localStorage)
+  const [user, setUser] = useState(() => {
     try {
-      // v2: nullstiller paid_minutes-feil fra tidligere versjon
-      const ver = localStorage.getItem("torp_data_version");
-      if (ver !== "2") {
-        localStorage.removeItem("torp_workers");
-        localStorage.setItem("torp_data_version", "2");
-        return MW;
-      }
-      const s = localStorage.getItem("torp_workers");
-      return s ? JSON.parse(s) : MW;
-    } catch { return MW; }
+      const s = sessionStorage.getItem("torp_session_user");
+      return s ? JSON.parse(s) : null;
+    } catch { return null; }
   });
-  const [entries, setEntries] = useState(() => {
-    try {
-      const s = localStorage.getItem("torp_entries");
-      return s ? JSON.parse(s) : ME;
-    } catch { return ME; }
-  });
-  const [jordbrukRecs, setJordbrukRecs] = useState([]);
-  const [user, setUser]   = useState(null);
-  const [page, setPage]   = useState("dash");
+  const [page, setPage] = useState("dash");
 
   useEffect(() => {
-    try { localStorage.setItem("torp_workers", JSON.stringify(workers)); } catch {}
-  }, [workers]);
-
-  useEffect(() => {
-    try { localStorage.setItem("torp_entries", JSON.stringify(entries)); } catch {}
-  }, [entries]);
+    try {
+      if (user) sessionStorage.setItem("torp_session_user", JSON.stringify(user));
+      else sessionStorage.removeItem("torp_session_user");
+    } catch {}
+  }, [user]);
 
   useEffect(() => {
     const l = document.createElement("link");
@@ -55,10 +53,10 @@ export default function App() {
 
   if (page === "dash")      return <Dashboard  user={user} nav={setPage} logout={logout}/>;
   if (page === "timer")     return <Timer      user={user} workers={workers} setWorkers={setWorkers} entries={entries} setEntries={setEntries} back={back} logout={logout}/>;
-  if (page === "maskiner")  return <Maskiner   user={user} back={back} logout={logout}/>;
-  if (page === "jordbruk")  return <Jordbruk   user={user} back={back} logout={logout} onRecsChange={setJordbrukRecs}/>;
-  if (page === "skog")      return <Skog       user={user} back={back} logout={logout}/>;
-  if (page === "bygninger") return <Bygninger  user={user} back={back} logout={logout}/>;
+  if (page === "maskiner")  return <Maskiner   user={user} back={back} logout={logout} initData={maskinerData} onDataChange={setMaskinerData}/>;
+  if (page === "jordbruk")  return <Jordbruk   user={user} back={back} logout={logout} initRecs={jordbrukRecs} onRecsChange={setJordbrukRecs}/>;
+  if (page === "skog")      return <Skog       user={user} back={back} logout={logout} initRecs={skogRecs} onRecsChange={setSkogRecs} initLager={skogLager} onLagerChange={setSkogLager} initPriser={skogPriser} onPriserChange={setSkogPriser} initVedLog={skogVedLog} onVedLogChange={setSkogVedLog}/>;
+  if (page === "bygninger") return <Bygninger  user={user} back={back} logout={logout} initLogs={bygningerLogs} onLogsChange={setBygningerLogs}/>;
   if (page === "vaer")      return <VærSesong  user={user} back={back} logout={logout} jordbrukRecs={jordbrukRecs}/>;
 
   return null;

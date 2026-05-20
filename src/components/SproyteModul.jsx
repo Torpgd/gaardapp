@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { S, uid, getCompat } from "../lib/utils";
+import { BbchTekst } from "./BbchKort";
 import { PESTICIDES_DB, COMPAT, today } from "../data/constants";
 import { FieldRangeSelector } from "./Shared";
 
@@ -74,7 +75,7 @@ export function PesticideInfoPanel() {
               <div><div style={{ fontSize:9, color:"#4a6a38", textTransform:"uppercase", marginBottom:2 }}>Dose</div><div style={{ fontSize:12, color:"#f0c878" }}>{p.dose}</div></div>
               <div><div style={{ fontSize:9, color:"#4a6a38", textTransform:"uppercase", marginBottom:2 }}>Kulturer</div><div style={{ fontSize:11, color:"#a8d878" }}>{p.crop.join(", ")}</div></div>
             </div>
-            <div style={{ fontSize:11, color:"#7a9e6a", marginBottom:8 }}>{p.info}</div>
+            <div style={{ fontSize:11, color:"#7a9e6a", marginBottom:8 }}><BbchTekst tekst={p.info}/></div>
             <div>
               <div style={{ fontSize:9, color:"#4a6a38", textTransform:"uppercase", marginBottom:4 }}>Virker mot</div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:4 }}>
@@ -246,7 +247,10 @@ export function SprøyteplanEditor() {
             <div style={{ width:90, flexShrink:0 }}><span style={{ ...S.tag, color:"#c878f0", fontSize:9 }}>{row.kultur}</span></div>
             <div style={{ flex:1 }}>
               <div style={{ fontSize:13, color:"#c8dca8" }}>{row.middel}</div>
-              <div style={{ fontSize:10, color:"#7a9e6a", marginTop:1 }}>💧 {row.dose}{row.tidspunkt ? ` · ⏱ ${row.tidspunkt}` : ""}</div>
+              <div style={{ fontSize:10, color:"#7a9e6a", marginTop:1, display:"flex", alignItems:"center", gap:4, flexWrap:"wrap" }}>
+                <span>💧 {row.dose}</span>
+                {row.tidspunkt && <BbchTekst tekst={` · ${row.tidspunkt}`}/>}
+              </div>
               {row.notat && <div style={{ fontSize:10, color:"#5a7a4a", marginTop:1 }}>{row.notat}</div>}
             </div>
             <div style={{ display:"flex", gap:4, flexShrink:0 }}>

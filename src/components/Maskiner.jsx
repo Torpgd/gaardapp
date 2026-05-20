@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Hdr, FileUpload, FThumb } from "./Shared";
 import { S, uid, fmt } from "../lib/utils";
 import { INIT_MACHINES, today } from "../data/constants";
@@ -163,8 +163,16 @@ function MaskinModal({ maskin, onSave, onClose }) {
 }
 
 // ─── MASKINER HOVEDKOMPONENT ──────────────────────────────────────────────────
-export default function Maskiner({ user, back, logout }) {
-  const [machines, setMachines]   = useState(INIT_MACHINES);
+export default function Maskiner({ user, back, logout, initData, onDataChange }) {
+  const [machines, setMachinesState] = useState(() => initData || INIT_MACHINES);
+  function setMachines(fn) {
+    setMachinesState(p => {
+      const ny = typeof fn === "function" ? fn(p) : fn;
+      onDataChange?.(ny);
+      return ny;
+    });
+  }
+
   const [sel, setSel]             = useState(null);
   const [machinePage, setMachinePage] = useState("info");
   const [logs, setLogs]           = useState({});
