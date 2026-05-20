@@ -22,11 +22,10 @@ export default function App() {
   const [bygningerLogs, setBygningerLogs] = useLocalStorage("torp_v3_bygninger", null);
   const [maskinerData, setMaskinerData]   = useLocalStorage("torp_v3_maskiner", null);
 
-  // ── Innlogget bruker — huskes til nettleserfane lukkes ─────────────────
-  // PIN tastes kun én gang — husket i sessionStorage (ikke localStorage)
+  // ── Innlogget bruker — PIN huskes permanent per enhet ────────────────────
   const [user, setUser] = useState(() => {
     try {
-      const s = sessionStorage.getItem("torp_session_user");
+      const s = localStorage.getItem("torp_v3_user");
       return s ? JSON.parse(s) : null;
     } catch { return null; }
   });
@@ -34,8 +33,8 @@ export default function App() {
 
   useEffect(() => {
     try {
-      if (user) sessionStorage.setItem("torp_session_user", JSON.stringify(user));
-      else sessionStorage.removeItem("torp_session_user");
+      if (user) localStorage.setItem("torp_v3_user", JSON.stringify(user));
+      else localStorage.removeItem("torp_v3_user");
     } catch {}
   }, [user]);
 

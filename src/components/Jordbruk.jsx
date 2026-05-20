@@ -103,9 +103,15 @@ function RecForm({ nr, setNr, onSave, onCancel, editRec, user }) {
   );
 }
 
-export default function Jordbruk({ user, back, logout, onRecsChange }) {
+export default function Jordbruk({ user, back, logout, initRecs, onRecsChange }) {
   const [tab, setTab] = useState("alle");
-  const [recs, setRecs] = useState(INIT_CROP_RECS);
+  const [recsState, setRecsState] = useState(() =>
+    Array.isArray(initRecs) && initRecs.length > 0 ? initRecs : INIT_CROP_RECS
+  );
+  function setRecs(fn) {
+    setRecsState(p => { const ny = typeof fn==="function"?fn(p):fn; onRecsChange?.(ny); return ny; });
+  }
+  const recs = recsState;
   const { tiltak, laster:tiltakLaster, feil:tiltakFeil, markerUtfort, markerIkkeAktuelt } = useTiltak();
 
   // Varsle App.jsx når recs endres så VærSesong kan synkronisere
