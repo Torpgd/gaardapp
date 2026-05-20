@@ -304,7 +304,7 @@ export function SoppTab({ user }) {
                         <span style={{ fontSize:13, color:"#d4e8b0", fontWeight:"bold" }}>{d.name}</span>
                         <span style={{ fontSize:10, color:"#5a7a4a", fontStyle:"italic" }}>{d.latin}</span>
                         <span style={{ ...S.tag, color:riskC, borderColor:riskC }}>{d.risk}</span>
-                        <span style={{ ...S.tag, color:"#5a7a4a" }}>⏱ {d.season}</span>
+                        <BbchKort stadier={d.season}/>
                       </div>
                       <span style={{ color:"#3a5a30", fontSize:11, flexShrink:0 }}>{ex ? "▲" : "▼"}</span>
                     </button>
