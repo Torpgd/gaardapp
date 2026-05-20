@@ -318,7 +318,7 @@ export default function VærSesong({ user, back, logout, jordbrukRecs }) {
 
     // Poll Supabase i opptil 60 sekunder på svar fra agenten
     let forsok = 0;
-    const maxForsok = 60;
+    const maxForsok = 120;
     const poll = setInterval(async () => {
       forsok++;
       const rader = await sbSelect(
