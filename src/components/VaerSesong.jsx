@@ -205,10 +205,23 @@ export default function VærSesong({ user, back, logout, jordbrukRecs }) {
 
   async function synkKulturer() {
     if (!sesong) return;
+
+    // Hent alltid fersk liste fra Supabase — ikke bruk lokal state
+    const eksisterendeFraDb = await sbSelect(
+      "sesong_kulturer",
+      `sesong_id=eq.${sesong.id}`
+    ) || [];
+
     const saainger = jordbrukRecs?.filter(r => r.type === "Såing") || [];
     for (const s of saainger) {
-      const eksisterende = kulturer.find(k => k.kultur === s.crop);
-      if (!eksisterende) {
+      if (!s.crop) continue;
+      // Sjekk mot Supabase-data, ikke lokal state
+      const finnes = eksisterendeFraDb.find(
+        k => k.kultur === s.crop &&
+             k.from_skifte === s.from_skifte &&
+             k.to_skifte === s.to_skifte
+      );
+      if (!finnes) {
         await sbInsert("sesong_kulturer", {
           sesong_id:   sesong.id,
           kultur:      s.crop,
@@ -218,19 +231,24 @@ export default function VærSesong({ user, back, logout, jordbrukRecs }) {
           saato:       s.date,
           aktiv:       true
         });
-      } else if (!eksisterende.saato) {
-        await sbUpdate("sesong_kulturer", `id=eq.${eksisterende.id}`, { saato: s.date });
+      } else if (!finnes.saato) {
+        await sbUpdate("sesong_kulturer", `id=eq.${finnes.id}`, { saato: s.date });
       }
     }
+
     const hostinger = jordbrukRecs?.filter(r => r.type === "Høsting") || [];
     for (const h of hostinger) {
-      const k = kulturer.find(x => x.kultur === h.crop);
-      if (k && !k.hostedato) {
+      const k = eksisterendeFraDb.find(x => x.kultur === h.crop && !x.hostedato);
+      if (k) {
         await sbUpdate("sesong_kulturer", `id=eq.${k.id}`, { hostedato: h.date, aktiv: false });
       }
     }
+
+    // Oppdater lokal state med fersk data
     const oppdatert = await sbSelect("sesong_kulturer", `sesong_id=eq.${sesong.id}&aktiv=eq.true`);
-    if (oppdatert?.length === 0 && kulturer.length > 0) {
+    setKulturer(oppdatert || []);
+
+    if ((oppdatert?.length === 0) && eksisterendeFraDb.length > 0) {
       await sbUpdate("vekstsesong", `id=eq.${sesong.id}`, {
         aktiv: false, deaktivert_dato: new Date().toISOString().slice(0, 10)
       });
