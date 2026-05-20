@@ -21,6 +21,8 @@ export default function App() {
   const [skogVedLog, setSkogVedLog] = useLocalStorage("torp_v3_skog_vedlog", []);
   const [bygningerLogs, setBygningerLogs] = useLocalStorage("torp_v3_bygninger", null);
   const [maskinerData, setMaskinerData]   = useLocalStorage("torp_v3_maskiner", null);
+  const [gjødselplan, setGjødselplan]     = useLocalStorage("torp_v3_gjodselplan", null);
+  const [sprøyteplan, setSprøyteplan]     = useLocalStorage("torp_v3_sproyteplan", null);
 
   // ── Innlogget bruker — PIN huskes permanent per enhet ────────────────────
   const [user, setUser] = useState(() => {
@@ -53,7 +55,7 @@ export default function App() {
   if (page === "dash")      return <Dashboard  user={user} nav={setPage} logout={logout}/>;
   if (page === "timer")     return <Timer      user={user} workers={workers} setWorkers={setWorkers} entries={entries} setEntries={setEntries} back={back} logout={logout}/>;
   if (page === "maskiner")  return <Maskiner   user={user} back={back} logout={logout} initData={maskinerData} onDataChange={setMaskinerData}/>;
-  if (page === "jordbruk")  return <Jordbruk   user={user} back={back} logout={logout} initRecs={jordbrukRecs} onRecsChange={setJordbrukRecs}/>;
+  if (page === "jordbruk")  return <Jordbruk   user={user} back={back} logout={logout} initRecs={jordbrukRecs} onRecsChange={setJordbrukRecs} initGjødselplan={gjødselplan} onGjødselplanChange={setGjødselplan} initSprøyteplan={sprøyteplan} onSprøyteplanChange={setSprøyteplan}/>;
   if (page === "skog")      return <Skog       user={user} back={back} logout={logout} initRecs={skogRecs} onRecsChange={setSkogRecs} initLager={skogLager} onLagerChange={setSkogLager} initPriser={skogPriser} onPriserChange={setSkogPriser} initVedLog={skogVedLog} onVedLogChange={setSkogVedLog}/>;
   if (page === "bygninger") return <Bygninger  user={user} back={back} logout={logout} initLogs={bygningerLogs} onLogsChange={setBygningerLogs}/>;
   if (page === "vaer")      return <VærSesong  user={user} back={back} logout={logout} jordbrukRecs={jordbrukRecs}/>;

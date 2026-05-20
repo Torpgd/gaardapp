@@ -134,8 +134,11 @@ const INIT_GJØDSELPLAN = [
   {id:"g4",label:"Kieseritt",produkt:"Ikke aktuelt",mengde:"—",dato:"—",notat:"Mg-AL over NLR-terskel (3 mg/100g)"},
 ];
 
-export function GjødselplanEditor() {
-  const [plan, setPlan] = useState(INIT_GJØDSELPLAN);
+export function GjødselplanEditor({ initPlan, onPlanChange }) {
+  const [plan, setPlanState] = useState(() => initPlan || INIT_GJØDSELPLAN);
+  function setPlan(fn) {
+    setPlanState(p => { const ny = typeof fn==="function"?fn(p):fn; onPlanChange?.(ny); return ny; });
+  }
   const [editId, setEditId] = useState(null);
   const [editRow, setEditRow] = useState(null);
   const [adding, setAdding] = useState(false);
@@ -204,8 +207,11 @@ const INIT_SPRØYTEPLAN = [
   {id:"sp3",kultur:"Hvete",middel:"Proline 250 EC",dose:"40-60 ml/daa",tidspunkt:"Z37–Z55",notat:"Forebyggende soppmiddel ved behov"},
 ];
 
-export function SprøyteplanEditor() {
-  const [plan, setPlan] = useState(INIT_SPRØYTEPLAN);
+export function SprøyteplanEditor({ initPlan, onPlanChange }) {
+  const [plan, setPlanState] = useState(() => initPlan || INIT_SPRØYTEPLAN);
+  function setPlan(fn) {
+    setPlanState(p => { const ny = typeof fn==="function"?fn(p):fn; onPlanChange?.(ny); return ny; });
+  }
   const [editId, setEditId] = useState(null);
   const [editRow, setEditRow] = useState(null);
   const [adding, setAdding] = useState(false);

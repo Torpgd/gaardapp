@@ -103,7 +103,7 @@ function RecForm({ nr, setNr, onSave, onCancel, editRec, user }) {
   );
 }
 
-export default function Jordbruk({ user, back, logout, initRecs, onRecsChange }) {
+export default function Jordbruk({ user, back, logout, initRecs, onRecsChange, initGjødselplan, onGjødselplanChange, initSprøyteplan, onSprøyteplanChange }) {
   const [tab, setTab] = useState("alle");
   const [recsState, setRecsState] = useState(() =>
     Array.isArray(initRecs) && initRecs.length > 0 ? initRecs : INIT_CROP_RECS
@@ -260,7 +260,7 @@ export default function Jordbruk({ user, back, logout, initRecs, onRecsChange })
         {/* GJØDSLING */}
         {tab === "Gjødsling" && (
           <div>
-            <GjødselplanEditor/>
+            <GjødselplanEditor initPlan={initGjødselplan} onPlanChange={onGjødselplanChange}/>
             <button onClick={() => setSa(true)} style={{ ...S.btn, background:"#5a4a1a", borderColor:"#8a7a2a", color:"#f0c878", marginBottom:12, width:"100%" }}>＋ Ny gjødslingsregistrering</button>
             {sa && <RecForm nr={nr} setNr={setNr} onSave={addRec} onCancel={cancelForm} editRec={editRec} user={user}/>}
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
@@ -290,7 +290,7 @@ export default function Jordbruk({ user, back, logout, initRecs, onRecsChange })
         {tab === "Sprøyting" && (
           <div>
             <TiltakBanner tiltak={tiltak} laster={tiltakLaster} feil={tiltakFeil} markerUtfort={markerUtfort} markerIkkeAktuelt={markerIkkeAktuelt} filter="sprøyting" user={user}/>
-            <SprøyteplanEditor/>
+            <SprøyteplanEditor initPlan={initSprøyteplan} onPlanChange={onSprøyteplanChange}/>
             <PesticideInfoPanel/>
             <button onClick={() => { setNr(p => ({...p, type:"Sprøyting"})); setSa(true); }} style={{ ...S.btn, background:"#3a1a5a", borderColor:"#6a3a9a", color:"#c878f0", marginBottom:12, width:"100%" }}>＋ Ny sprøytingsregistrering</button>
             {sa && <RecForm nr={nr} setNr={setNr} onSave={addRec} onCancel={cancelForm} editRec={editRec} user={user}/>}
