@@ -3,7 +3,7 @@ import { S, uid, fmt, fieldName, getEffectiveDaa } from "../lib/utils";
 import { WEEDS_DB, DISEASES_DB, PESTICIDES_DB, WEED_NIBIO, DISEASE_NIBIO, today } from "../data/constants";
 import { FieldRangeSelector } from "./Shared";
 import TiltakBanner from "./TiltakBanner";
-import { BbchTekst } from "./BbchKort";
+import { BbchTekst, BbchKort } from "./BbchKort";
 import { useTiltak } from "../lib/useSisteTiltak";
 
 // Bilde med fallback — håndterer CORS og lastingsfeil
