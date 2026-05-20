@@ -1,9 +1,9 @@
 // ─── WORKERS (mock — erstattes av Supabase) ───────────────────────────────────
 export const MW = [
-  {id:"1",name:"Jon",color:"#a8d878",birthdate:"1978-05-14",wage:177.80,paid_minutes:480,is_admin:true,pin:"1234"},
+  {id:"1",name:"Jon",color:"#a8d878",birthdate:"1978-05-14",wage:177.80,paid_minutes:0,is_admin:true,pin:"1234"},
   {id:"2",name:"Anne",color:"#78c8f0",birthdate:"1980-03-22",wage:177.80,paid_minutes:0,is_admin:true,pin:"2345"},
-  {id:"3",name:"Christian",color:"#f0c878",birthdate:"2008-07-10",wage:147.40,paid_minutes:120,is_admin:false,pin:"3456"},
-  {id:"4",name:"Håkon",color:"#f09878",birthdate:"2011-01-30",wage:120.00,paid_minutes:0,is_admin:false,pin:"4567"},
+  {id:"3",name:"Christian",color:"#f0c878",birthdate:"2013-04-23",wage:120.00,paid_minutes:0,is_admin:false,pin:"3456"},
+  {id:"4",name:"Håkon",color:"#f09878",birthdate:"2010-01-08",wage:147.40,paid_minutes:0,is_admin:false,pin:"4567"},
 ];
 
 export const ME = [

@@ -11,12 +11,23 @@ import { MW, ME } from "./src/data/constants";
 
 export default function App() {
   const [workers, setWorkers] = useState(() => {
-    try { const s = localStorage.getItem("torp_workers"); return s ? JSON.parse(s) : MW; }
-    catch { return MW; }
+    try {
+      // v2: nullstiller paid_minutes-feil fra tidligere versjon
+      const ver = localStorage.getItem("torp_data_version");
+      if (ver !== "2") {
+        localStorage.removeItem("torp_workers");
+        localStorage.setItem("torp_data_version", "2");
+        return MW;
+      }
+      const s = localStorage.getItem("torp_workers");
+      return s ? JSON.parse(s) : MW;
+    } catch { return MW; }
   });
   const [entries, setEntries] = useState(() => {
-    try { const s = localStorage.getItem("torp_entries"); return s ? JSON.parse(s) : ME; }
-    catch { return ME; }
+    try {
+      const s = localStorage.getItem("torp_entries");
+      return s ? JSON.parse(s) : ME;
+    } catch { return ME; }
   });
   const [jordbrukRecs, setJordbrukRecs] = useState([]);
   const [user, setUser]   = useState(null);
