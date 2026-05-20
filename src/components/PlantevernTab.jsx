@@ -213,7 +213,7 @@ export function SoppTab({ user }) {
   const [obs, setObs] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [culture, setCulture] = useState("hvete");
-  const { tiltak, rapportDato, laster:tiltakLaster, feil:tiltakFeil } = useSisteTiltak();
+  const { tiltak, laster:tiltakLaster, feil:tiltakFeil, markerUtfort, markerIkkeAktuelt } = useTiltak();
   const [form, setForm] = useState({ date:today, from_skifte:"skifte1", to_skifte:"skifte1", customDaa:"", disease:"", severity:"Lav", notes:"", done_by:user.name });
   const [suggestions, setSuggestions] = useState([]);
   const [expanded, setExpanded] = useState(null);
