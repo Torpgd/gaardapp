@@ -47,17 +47,24 @@ export function UgrasTab({ user }) {
               <div key={w.id} style={{ background:"#0f1a0d", border:"1px solid #1a2e16", borderRadius:6, overflow:"hidden" }}>
                 <button onClick={() => setExpanded(ex ? null : w.id)}
                   style={{ width:"100%", background:"none", border:"none", cursor:"pointer", padding:"8px 12px", textAlign:"left", display:"flex", alignItems:"center", justifyContent:"space-between", gap:8 }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", flex:1 }}>
-                    <span style={{ fontSize:13, color:"#d4e8b0", fontWeight:"bold" }}>{w.name}</span>
-                    <span style={{ fontSize:10, color:"#5a7a4a", fontStyle:"italic" }}>{w.latin}</span>
-                    <span style={{ ...S.tag, color:RISK_COLOR[w.risk]||"#7a9e6a", borderColor:RISK_COLOR[w.risk]||"#2d4a26" }}>{w.risk}</span>
-                    <span style={S.tag}>{w.type}</span>
+                  <div style={{ display:"flex", alignItems:"center", gap:10, flex:1, flexWrap:"wrap" }}>
+                    {w.img && !ex && (
+                      <img src={w.img} alt={w.name}
+                        style={{ width:44, height:44, objectFit:"cover", borderRadius:5, border:"1px solid #2d4a26", flexShrink:0 }}
+                        onError={e => e.target.style.display="none"}/>
+                    )}
+                    <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", flex:1 }}>
+                      <span style={{ fontSize:13, color:"#d4e8b0", fontWeight:"bold" }}>{w.name}</span>
+                      <span style={{ fontSize:10, color:"#5a7a4a", fontStyle:"italic" }}>{w.latin}</span>
+                      <span style={{ ...S.tag, color:RISK_COLOR[w.risk]||"#7a9e6a", borderColor:RISK_COLOR[w.risk]||"#2d4a26" }}>{w.risk}</span>
+                      <span style={S.tag}>{w.type}</span>
+                    </div>
                   </div>
                   <span style={{ color:"#3a5a30", fontSize:11, flexShrink:0 }}>{ex ? "▲" : "▼"}</span>
                 </button>
                 {ex && (
                   <div style={{ padding:"8px 12px 12px", borderTop:"1px solid #1a2e16" }}>
-                    {w.img && <img src={w.img} alt={w.name} style={{ width:"100%", maxHeight:180, objectFit:"cover", borderRadius:6, marginBottom:10, border:"1px solid #2d4a26", display:"block" }} onError={e => e.target.style.display="none"}/>}
+                    {w.img && <img src={w.img} alt={w.name} style={{ width:"100%", maxHeight:200, objectFit:"cover", borderRadius:6, marginBottom:10, border:"1px solid #2d4a26", display:"block" }} onError={e => e.target.style.display="none"}/>}
                     <div style={{ display:"flex", gap:4, flexWrap:"wrap", marginBottom:10 }}>
                       {w.remedy.map(r => <span key={r} style={{ fontSize:9, background:"#1a2e3a", border:"1px solid #2a4a5a", borderRadius:3, padding:"2px 7px", color:"#78c8f0" }}>{r}</span>)}
                     </div>

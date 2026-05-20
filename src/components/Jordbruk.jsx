@@ -292,8 +292,17 @@ export default function Jordbruk({ user, back, logout, onRecsChange }) {
 }
 
 // ─── HØSTING TAB (separat for å holde Jordbruk lesbar) ────────────────────────
+// Målpriser per sort — kan redigeres av bruker
+const INIT_MALPRISER = {
+  "Betong vårhvete":  { pris: 2.80, enhet: "kr/kg" },
+  "Stella åkerbønner": { pris: 4.50, enhet: "kr/kg" },
+};
+
 function HighstingTab({ recs, setRecs, user, sa, setSa, editRec, setEditRec, nr, setNr }) {
   const høstRecs = recs.filter(r => r.type === "Høsting");
+  const [malpriser, setMalpriser] = useState(INIT_MALPRISER);
+  const [redigerPris, setRedigerPris] = useState(false);
+  const [tmpPriser, setTmpPriser] = useState({});
 
   function addRec() {
     if (!nr.crop) return;
@@ -303,45 +312,115 @@ function HighstingTab({ recs, setRecs, user, sa, setSa, editRec, setEditRec, nr,
     } else {
       setRecs(p => [{id:uid(), ...nr}, ...p]);
     }
-    setNr(x => ({...x, crop:"", total_kg:"", moisture:"", notes:"", files:[]}));
+    setNr(x => ({...x, crop:"", total_kg:"", moisture:"", pris_per_kg:"", notes:"", files:[]}));
     setSa(false);
   }
 
   function startEdit(r) { setNr({...r}); setEditRec(r.id); setSa(true); }
   function deleteRec(id) { setRecs(p => p.filter(r => r.id !== id)); }
 
+  function startRedigerPris() {
+    setTmpPriser(Object.fromEntries(Object.entries(malpriser).map(([k,v]) => [k, String(v.pris)])));
+    setRedigerPris(true);
+  }
+  function lagrePriser() {
+    setMalpriser(p => Object.fromEntries(Object.entries(p).map(([k,v]) => [k, {...v, pris: parseFloat(tmpPriser[k])||v.pris}])));
+    setRedigerPris(false);
+  }
+
+  // Beregn inntekt per registrering
+  function getInntekt(r) {
+    const kg = parseFloat(r.total_kg) || 0;
+    const pris = parseFloat(r.pris_per_kg) || malpriser[r.crop]?.pris || 0;
+    return kg * pris;
+  }
+
   return (
     <div>
+      {/* Målpriser */}
+      <div style={{ ...S.card, marginBottom:12 }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+          <div style={{ fontSize:11, color:"#5a7a4a", letterSpacing:2, textTransform:"uppercase" }}>Målpriser</div>
+          {!redigerPris
+            ? <button onClick={startRedigerPris} style={{ ...S.bsm, fontSize:10, padding:"3px 10px" }}>✏️ Rediger priser</button>
+            : <div style={{ display:"flex", gap:6 }}>
+                <button onClick={lagrePriser} style={{ ...S.btn, padding:"4px 12px", fontSize:11 }}>Lagre</button>
+                <button onClick={() => setRedigerPris(false)} style={{ ...S.bsm, padding:"4px 10px" }}>Avbryt</button>
+              </div>
+          }
+        </div>
+        {redigerPris
+          ? <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              {Object.entries(malpriser).map(([sort, data]) => (
+                <div key={sort} style={{ display:"flex", alignItems:"center", gap:10 }}>
+                  <span style={{ fontSize:12, color:"#c8dca8", flex:1 }}>🌾 {sort}</span>
+                  <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                    <input type="number" step="0.01" value={tmpPriser[sort]||""} onChange={e => setTmpPriser(p => ({...p,[sort]:e.target.value}))}
+                      style={{ ...S.inp, width:80, textAlign:"right" }}/>
+                    <span style={{ fontSize:11, color:"#5a7a4a" }}>kr/kg</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          : <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+              {Object.entries(malpriser).map(([sort, data]) => (
+                <div key={sort} style={{ background:"#0f1a0d", borderRadius:6, padding:"8px 12px", flex:1, minWidth:140 }}>
+                  <div style={{ fontSize:10, color:"#4a6a38", textTransform:"uppercase", letterSpacing:1, marginBottom:3 }}>{sort.split(" ")[0]}</div>
+                  <div style={{ fontSize:18, color:"#f0c878", fontWeight:"bold" }}>{data.pris.toFixed(2)} kr/kg</div>
+                </div>
+              ))}
+            </div>
+        }
+      </div>
+
+      {/* Avlingsresultater med inntekt */}
       <div style={{ ...S.card, marginBottom:12 }}>
         <div style={{ fontSize:11, color:"#5a7a4a", letterSpacing:2, textTransform:"uppercase", marginBottom:10 }}>Avlingsresultater 2026</div>
         {høstRecs.length === 0
           ? <div style={{ fontSize:12, color:"#3a5a30" }}>Ingen høsting registrert ennå</div>
           : <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-              {["Betong vårhvete","Stella åkerbønner"].map(sort => {
+              {[...new Set(høstRecs.map(r => r.crop))].map(sort => {
                 const hRecs = høstRecs.filter(r => r.crop === sort);
                 if (!hRecs.length) return null;
-                const totKg = hRecs.reduce((s,r) => s+(parseFloat(r.total_kg)||0), 0);
-                const totDaa = hRecs.reduce((s,r) => s+getEffectiveDaa(r), 0);
-                const avgYield = totDaa > 0 ? (totKg/totDaa).toFixed(1) : "-";
+                const totKg     = hRecs.reduce((s,r) => s+(parseFloat(r.total_kg)||0), 0);
+                const totDaa    = hRecs.reduce((s,r) => s+getEffectiveDaa(r), 0);
+                const totInntekt = hRecs.reduce((s,r) => s+getInntekt(r), 0);
+                const avgYield  = totDaa > 0 ? (totKg/totDaa).toFixed(1) : "-";
+                const malpris   = malpriser[sort]?.pris;
                 return (
                   <div key={sort} style={{ background:"#0f1a0d", borderRadius:6, padding:"10px 14px" }}>
-                    <div style={{ fontSize:13, color:"#c8e878", fontWeight:"bold", marginBottom:6 }}>🌾 {sort}</div>
-                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
-                      {[{l:"Total",v:`${parseFloat(totKg).toLocaleString("nb-NO")} kg`},{l:"Avling/daa",v:`${avgYield} kg`},{l:"Reg.",v:hRecs.length}].map(x => (
+                    <div style={{ fontSize:13, color:"#c8e878", fontWeight:"bold", marginBottom:8 }}>🌾 {sort}</div>
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:8 }}>
+                      {[
+                        {l:"Total kg",   v:`${parseFloat(totKg).toLocaleString("nb-NO")} kg`, c:"#c8e878"},
+                        {l:"Avling/daa", v:`${avgYield} kg`,                                   c:"#a8d878"},
+                        {l:"Inntekt",    v:totInntekt>0?`${Math.round(totInntekt).toLocaleString("nb-NO")} kr`:"—", c:"#f0c878"},
+                        {l:"Pris/kg",    v:malpris?`${malpris.toFixed(2)} kr`:"—",             c:"#78c8f0"},
+                      ].map(x => (
                         <div key={x.l} style={{ textAlign:"center" }}>
                           <div style={{ fontSize:9, color:"#4a6a38", letterSpacing:1, textTransform:"uppercase", marginBottom:2 }}>{x.l}</div>
-                          <div style={{ fontSize:14, color:"#d4e8b0", fontWeight:"bold" }}>{x.v}</div>
+                          <div style={{ fontSize:13, color:x.c, fontWeight:"bold" }}>{x.v}</div>
                         </div>
                       ))}
                     </div>
                   </div>
                 );
               })}
+              {/* Totalt alle sorter */}
+              {høstRecs.length > 0 && (
+                <div style={{ background:"#1a2e16", border:"1px solid #2d4a26", borderRadius:6, padding:"10px 14px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                  <span style={{ fontSize:11, color:"#7a9e6a", letterSpacing:2, textTransform:"uppercase" }}>Total inntekt 2026</span>
+                  <span style={{ fontSize:18, color:"#f0c878", fontWeight:"bold" }}>
+                    {Math.round(høstRecs.reduce((s,r) => s+getInntekt(r), 0)).toLocaleString("nb-NO")} kr
+                  </span>
+                </div>
+              )}
             </div>
         }
       </div>
 
-      <button onClick={() => { setNr(p => ({...p, type:"Høsting", crop:"", total_kg:"", moisture:""})); setSa(true); }} style={{ ...S.btn, background:"#3a4a1a", borderColor:"#6a8a2a", color:"#c8e878", marginBottom:12, width:"100%" }}>
+      <button onClick={() => { setNr(p => ({...p, type:"Høsting", crop:"", total_kg:"", moisture:"", pris_per_kg:""})); setSa(true); }}
+        style={{ ...S.btn, background:"#3a4a1a", borderColor:"#6a8a2a", color:"#c8e878", marginBottom:12, width:"100%" }}>
         ＋ Registrer høsting
       </button>
 
@@ -362,11 +441,22 @@ function HighstingTab({ recs, setRecs, user, sa, setSa, editRec, setEditRec, nr,
           <div style={{ marginBottom:10 }}>
             <FieldRangeSelector fromId={nr.from_skifte} toId={nr.to_skifte} onFromChange={v => setNr(p => ({...p,from_skifte:v}))} onToChange={v => setNr(p => ({...p,to_skifte:v}))} customDaa={nr.customDaa} onDaaChange={v => setNr(p => ({...p,customDaa:v}))}/>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
             <div><label style={S.lbl}>Total mengde (kg)</label><input type="number" value={nr.total_kg||""} onChange={e => setNr(p => ({...p,total_kg:e.target.value}))} placeholder="F.eks. 15000" style={S.inp}/></div>
             <div><label style={S.lbl}>Fuktprosent (%)</label><input type="number" step="0.1" value={nr.moisture||""} onChange={e => setNr(p => ({...p,moisture:e.target.value}))} placeholder="F.eks. 14.5" style={S.inp}/></div>
+            <div>
+              <label style={S.lbl}>Pris kr/kg (overstyr)</label>
+              <input type="number" step="0.01" value={nr.pris_per_kg||""} onChange={e => setNr(p => ({...p,pris_per_kg:e.target.value}))}
+                placeholder={nr.crop ? (malpriser[nr.crop]?.pris?.toFixed(2)||"") : ""}
+                style={S.inp}/>
+            </div>
             <div><label style={S.lbl}>Utført av</label><input type="text" value={nr.done_by} onChange={e => setNr(p => ({...p,done_by:e.target.value}))} style={S.inp}/></div>
           </div>
+          {nr.total_kg && nr.crop && (
+            <div style={{ background:"#0f1a0d", border:"1px solid #2d4a1a", borderRadius:5, padding:"7px 12px", marginBottom:10, fontSize:12, color:"#f0c878" }}>
+              💰 Beregnet inntekt: {Math.round((parseFloat(nr.total_kg)||0) * (parseFloat(nr.pris_per_kg)||malpriser[nr.crop]?.pris||0)).toLocaleString("nb-NO")} kr
+            </div>
+          )}
           <div style={{ marginBottom:10 }}><label style={S.lbl}>Notater</label><input type="text" value={nr.notes||""} onChange={e => setNr(p => ({...p,notes:e.target.value}))} placeholder="F.eks. god kvalitet, lite ugras..." style={S.inp}/></div>
           <div style={{ marginBottom:12 }}><FileUpload files={nr.files||[]} setFiles={f => setNr(p => ({...p,files:typeof f==="function"?f(p.files||[]):f}))}/></div>
           <div style={{ display:"flex", gap:8 }}>
@@ -379,12 +469,12 @@ function HighstingTab({ recs, setRecs, user, sa, setSa, editRec, setEditRec, nr,
       {høstRecs.length > 0 && (
         <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
           {høstRecs.map(r => {
-            const fields  = getFieldsInRange(r.from_skifte, r.to_skifte);
-            const totDaa  = getEffectiveDaa(r);
-            const fromIdx = FIELDS.findIndex(f => f.id===r.from_skifte);
-            const toIdx   = FIELDS.findIndex(f => f.id===r.to_skifte);
-            const range   = fromIdx===toIdx ? fieldName(r.from_skifte) : `${fieldName(r.from_skifte)} → ${fieldName(r.to_skifte)}`;
+            const totDaa      = getEffectiveDaa(r);
+            const fromIdx     = FIELDS.findIndex(f => f.id===r.from_skifte);
+            const toIdx       = FIELDS.findIndex(f => f.id===r.to_skifte);
+            const range       = fromIdx===toIdx ? fieldName(r.from_skifte) : `${fieldName(r.from_skifte)} → ${fieldName(r.to_skifte)}`;
             const yieldPerDaa = totDaa > 0 && r.total_kg ? (parseFloat(r.total_kg)/totDaa).toFixed(1) : null;
+            const inntekt     = getInntekt(r);
             return (
               <div key={r.id} style={{ ...S.card, marginBottom:0, borderLeft:"3px solid #c8e878" }}>
                 <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:8 }}>
@@ -400,6 +490,7 @@ function HighstingTab({ recs, setRecs, user, sa, setSa, editRec, setEditRec, nr,
                       {r.total_kg && <div style={{ background:"#0f1a0d", borderRadius:5, padding:"5px 10px", textAlign:"center" }}><div style={{ fontSize:9, color:"#4a6a38", textTransform:"uppercase", letterSpacing:1, marginBottom:2 }}>Total</div><div style={{ fontSize:14, color:"#c8e878", fontWeight:"bold" }}>{parseFloat(r.total_kg).toLocaleString("nb-NO")} kg</div></div>}
                       {yieldPerDaa && <div style={{ background:"#0f1a0d", borderRadius:5, padding:"5px 10px", textAlign:"center" }}><div style={{ fontSize:9, color:"#4a6a38", textTransform:"uppercase", letterSpacing:1, marginBottom:2 }}>Avling/daa</div><div style={{ fontSize:14, color:"#a8d878", fontWeight:"bold" }}>{yieldPerDaa} kg</div></div>}
                       {r.moisture && <div style={{ background:"#0f1a0d", borderRadius:5, padding:"5px 10px", textAlign:"center" }}><div style={{ fontSize:9, color:"#4a6a38", textTransform:"uppercase", letterSpacing:1, marginBottom:2 }}>Fukt</div><div style={{ fontSize:14, color:"#78c8f0", fontWeight:"bold" }}>{r.moisture}%</div></div>}
+                      {inntekt > 0 && <div style={{ background:"#1a1a0a", border:"1px solid #4a4a10", borderRadius:5, padding:"5px 10px", textAlign:"center" }}><div style={{ fontSize:9, color:"#6a6a30", textTransform:"uppercase", letterSpacing:1, marginBottom:2 }}>Inntekt</div><div style={{ fontSize:14, color:"#f0c878", fontWeight:"bold" }}>{Math.round(inntekt).toLocaleString("nb-NO")} kr</div></div>}
                     </div>
                     {r.notes && <div style={{ fontSize:11, color:"#7a9e6a" }}>{r.notes}</div>}
                   </div>
