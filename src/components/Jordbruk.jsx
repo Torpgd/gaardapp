@@ -34,7 +34,7 @@ function RecCard({ r, onEdit, onDelete }) {
           </div>
           {r.crop && <div style={{ fontSize:13, color:"#c8dca8", marginBottom:2 }}>🌱 {r.crop}{r.amount_per_daa ? ` · ${r.amount_per_daa}` : ""}</div>}
           {r.sprøytemiddel && <div style={{ fontSize:12, color:"#c878f0", marginBottom:2 }}>💧 {r.sprøytemiddel}{r.sprøytemengde ? ` · ${r.sprøytemengde}/daa` : ""}</div>}
-          {r.notes && <div style={{ fontSize:11, color:"#7a9e6a", marginTop:2 }}>{r.notes}</div>}
+          {r.notes && <div style={{ fontSize:11, color:"#7a9e6a", marginTop:2 }}><BbchTekst tekst={r.notes}/></div>}
           {r.files?.length > 0 && (
             <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginTop:6 }}>
               {r.files.map(f => <FThumb key={f.id} file={f} onRemove={() => {}}/>)}

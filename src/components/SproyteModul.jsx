@@ -175,8 +175,8 @@ export function GjødselplanEditor({ initPlan, onPlanChange }) {
             <div style={{ width:130, flexShrink:0, fontSize:11, color:"#5a7a4a" }}>{row.label}</div>
             <div style={{ flex:1 }}>
               <div style={{ fontSize:13, color:"#c8dca8" }}>{row.produkt}{row.mengde && row.mengde !== "—" ? ` · ${row.mengde}` : ""}</div>
-              {row.dato && row.dato !== "—" && <div style={{ fontSize:10, color:"#7a9e6a", marginTop:1 }}>📅 {row.dato}</div>}
-              {row.notat && <div style={{ fontSize:10, color:"#5a7a4a", marginTop:1 }}>{row.notat}</div>}
+              {row.dato && row.dato !== "—" && <div style={{ fontSize:10, color:"#7a9e6a", marginTop:1, display:"flex", alignItems:"center", gap:4, flexWrap:"wrap" }}>📅 <BbchTekst tekst={row.dato}/></div>}
+              {row.notat && <div style={{ fontSize:10, color:"#5a7a4a", marginTop:1 }}><BbchTekst tekst={row.notat}/></div>}
             </div>
             <div style={{ display:"flex", gap:4, flexShrink:0 }}>
               <button onClick={() => startEdit(row)} style={{ ...S.bsm, padding:"2px 7px", fontSize:9 }}>✏️</button>
@@ -257,7 +257,7 @@ export function SprøyteplanEditor({ initPlan, onPlanChange }) {
                 <span>💧 {row.dose}</span>
                 {row.tidspunkt && <BbchTekst tekst={` · ${row.tidspunkt}`}/>}
               </div>
-              {row.notat && <div style={{ fontSize:10, color:"#5a7a4a", marginTop:1 }}>{row.notat}</div>}
+              {row.notat && <div style={{ fontSize:10, color:"#5a7a4a", marginTop:1 }}><BbchTekst tekst={row.notat}/></div>}
             </div>
             <div style={{ display:"flex", gap:4, flexShrink:0 }}>
               <button onClick={() => startEdit(row)} style={{ ...S.bsm, padding:"2px 7px", fontSize:9 }}>✏️</button>

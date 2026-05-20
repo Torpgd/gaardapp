@@ -3,7 +3,24 @@ import { S, uid, fmt, fieldName, getEffectiveDaa } from "../lib/utils";
 import { WEEDS_DB, DISEASES_DB, PESTICIDES_DB, WEED_NIBIO, DISEASE_NIBIO, today } from "../data/constants";
 import { FieldRangeSelector } from "./Shared";
 import TiltakBanner from "./TiltakBanner";
+import { BbchTekst } from "./BbchKort";
 import { useTiltak } from "../lib/useSisteTiltak";
+
+// Bilde med fallback — håndterer CORS og lastingsfeil
+function WeedImg({ src, alt, style }) {
+  const [feil, setFeil] = useState(false);
+  if (!src || feil) return null;
+  // Bruk Wikimedia thumbnail API direkte (mer stabil enn commons-URL)
+  return (
+    <img
+      src={src}
+      alt={alt}
+      style={style}
+      onError={() => setFeil(true)}
+      loading="lazy"
+    />
+  );
+}
 
 const RISK_COLOR = { Lav:"#f0c878", Middels:"#f09878", Høy:"#e06060", "Høy (etter langvarig korn)":"#e06060", "Høy (fuktig)":"#e06060", "Middels (tett bestand)":"#f09878", "Lav (sjelden i Norge)":"#f0c878", "Middels (ensidig dyrking)":"#f09878" };
 
@@ -48,11 +65,7 @@ export function UgrasTab({ user }) {
                 <button onClick={() => setExpanded(ex ? null : w.id)}
                   style={{ width:"100%", background:"none", border:"none", cursor:"pointer", padding:"8px 12px", textAlign:"left", display:"flex", alignItems:"center", justifyContent:"space-between", gap:8 }}>
                   <div style={{ display:"flex", alignItems:"center", gap:10, flex:1, flexWrap:"wrap" }}>
-                    {w.img && !ex && (
-                      <img src={w.img} alt={w.name}
-                        style={{ width:44, height:44, objectFit:"cover", borderRadius:5, border:"1px solid #2d4a26", flexShrink:0 }}
-                        onError={e => e.target.style.display="none"}/>
-                    )}
+                    {!ex && <WeedImg src={w.img} alt={w.name} style={{ width:44, height:44, objectFit:"cover", borderRadius:5, border:"1px solid #2d4a26", flexShrink:0 }}/>}
                     <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", flex:1 }}>
                       <span style={{ fontSize:13, color:"#d4e8b0", fontWeight:"bold" }}>{w.name}</span>
                       <span style={{ fontSize:10, color:"#5a7a4a", fontStyle:"italic" }}>{w.latin}</span>
@@ -64,7 +77,7 @@ export function UgrasTab({ user }) {
                 </button>
                 {ex && (
                   <div style={{ padding:"8px 12px 12px", borderTop:"1px solid #1a2e16" }}>
-                    {w.img && <img src={w.img} alt={w.name} style={{ width:"100%", maxHeight:200, objectFit:"cover", borderRadius:6, marginBottom:10, border:"1px solid #2d4a26", display:"block" }} onError={e => e.target.style.display="none"}/>}
+                    {<WeedImg src={w.img} alt={w.name} style={{ width:"100%", maxHeight:200, objectFit:"cover", borderRadius:6, marginBottom:10, border:"1px solid #2d4a26", display:"block" }}/>}
                     <div style={{ display:"flex", gap:4, flexWrap:"wrap", marginBottom:10 }}>
                       {w.remedy.map(r => <span key={r} style={{ fontSize:9, background:"#1a2e3a", border:"1px solid #2a4a5a", borderRadius:3, padding:"2px 7px", color:"#78c8f0" }}>{r}</span>)}
                     </div>
@@ -195,7 +208,7 @@ export function UgrasTab({ user }) {
                                           <span style={{ fontSize:12, color:"#78c8f0", fontWeight:"bold" }}>{p.name}</span>
                                           <span style={{ fontSize:11, color:"#f0c878" }}>{p.dose}</span>
                                         </div>
-                                        <div style={{ fontSize:10, color:"#5a7a4a" }}>{p.info}</div>
+                                        <div style={{ fontSize:10, color:"#5a7a4a" }}><BbchTekst tekst={p.info}/></div>
                                       </div>
                                     : <div key={r} style={{ background:"#152012", border:"1px solid #2a4a5a", borderRadius:5, padding:"6px 10px" }}><span style={{ fontSize:12, color:"#78c8f0" }}>{r}</span></div>;
                                 })}
@@ -297,9 +310,9 @@ export function SoppTab({ user }) {
                     </button>
                     {ex && (
                       <div style={{ padding:"8px 12px 12px", borderTop:"1px solid #1a2e16" }}>
-                        {d.img && <img src={d.img} alt={d.name} style={{ width:"100%", maxHeight:180, objectFit:"cover", borderRadius:6, marginBottom:10, border:"1px solid #2d4a26", display:"block" }} onError={e => e.target.style.display="none"}/>}
+                        {<WeedImg src={d.img} alt={d.name} style={{ width:"100%", maxHeight:180, objectFit:"cover", borderRadius:6, marginBottom:10, border:"1px solid #2d4a26", display:"block" }}/>}
                         <div style={{ fontSize:12, color:"#7a9e6a", marginBottom:8 }}>🔍 {d.symptoms}</div>
-                        <div style={{ fontSize:11, color:"#5a7a4a", marginBottom:8 }}>Behandlingstidspunkt: {d.season}</div>
+                        <div style={{ fontSize:11, color:"#5a7a4a", marginBottom:8 }}>Behandlingstidspunkt: <BbchTekst tekst={d.season}/></div>
                         <div style={{ display:"flex", gap:4, flexWrap:"wrap", marginBottom:12 }}>
                           {d.remedy.map(r => <span key={r} style={{ fontSize:9, background:"#2a1a3a", border:"1px solid #4a2a5a", borderRadius:3, padding:"2px 7px", color:"#c878f0" }}>{r}</span>)}
                         </div>
@@ -432,7 +445,7 @@ export function SoppTab({ user }) {
                                         <span style={{ fontSize:12, color:"#c878f0", fontWeight:"bold" }}>{p.name}</span>
                                         <span style={{ fontSize:11, color:"#f0c878" }}>{p.dose}</span>
                                       </div>
-                                      <div style={{ fontSize:10, color:"#5a7a4a" }}>{p.info}</div>
+                                      <div style={{ fontSize:10, color:"#5a7a4a" }}><BbchTekst tekst={p.info}/></div>
                                     </div>
                                   : <div key={r} style={{ background:"#152012", border:"1px solid #3a2a5a", borderRadius:5, padding:"6px 10px" }}><span style={{ fontSize:12, color:"#c878f0" }}>{r}</span></div>;
                               })}
